@@ -1,0 +1,69 @@
+# Import libraries
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+# Dataset path
+# Upload PlantVillage dataset folder
+train_dir = r"C:\Users\Acer\OneDrive\Desktop\applied ml lab\PlantVillage"
+# Image preprocessing
+datagen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2
+)
+
+# Training data
+train_data = datagen.flow_from_directory(
+    train_dir,
+    target_size=(32,32),
+    batch_size=32,
+    subset='training'
+)
+# Validation data
+val_data = datagen.flow_from_directory(
+    train_dir,
+    target_size=(32,32),
+    batch_size=32,
+    subset='validation'
+)
+# Small CNN model (compatible with 32x32 images)
+model = tf.keras.models.Sequential([
+
+    # Convolution layer
+    tf.keras.layers.Conv2D(
+        8,
+        (3,3),
+        activation='relu',
+        input_shape=(32,32,3)
+    ),
+
+    tf.keras.layers.MaxPool2D(),
+
+    # Flatten
+    tf.keras.layers.Flatten(),
+
+    # Dense layer
+    tf.keras.layers.Dense(16, activation='relu'),
+
+    # Output layer
+    tf.keras.layers.Dense(train_data.num_classes, activation='softmax')
+])
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+# Train model (very small training for quick demonstration)
+# Only few batches are used to reduce training time
+history = model.fit(
+    train_data,
+    validation_data=val_data,
+    epochs=1,
+    steps_per_epoch=2,
+    validation_steps=1
+)
+# Evaluate model (quick evaluation)
+loss, accuracy = model.evaluate(
+    val_data,
+    steps=1
+)
+
+print("Validation Accuracy:", accuracy)
